@@ -30,6 +30,13 @@
   "engines": {
     "node": ">=18"
   },
+  "keywords": [
+    "library",
+    "wikimedia",
+    "fandom",
+    "fandom-wiki",
+    "fandomjs"
+  ],
   "scripts": {
     "build": "tsup --format cjs,esm --dts src/index.ts --out-dir dist",
     "clean": "rimraf dist .turbo",
