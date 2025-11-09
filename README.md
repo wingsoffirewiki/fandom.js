@@ -1,2 +1,3 @@
 # fandom.js
-A client for the Fandom + MediaWiki APIs
+
+A powerful library to interact with the Fandom + MediaWiki APIs

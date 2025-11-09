@@ -1,20 +1,57 @@
 {
   "name": "fandom.js",
-  "version": "1.0.0",
-  "description": "A client for the Fandom + MediaWiki APIs",
-  "main": "dist/index.js",
-  "repository": "https://github.com/Ferotiq/fandom.js.git",
-  "author": "Ferotiq <evanrayweigel@outlook.com>",
+  "version": "0.1.0",
+  "description": "A powerful library to interact with the Fandom + MediaWiki APIs",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "authors": [
+    "Ferotiq <evanrayweigel@outlook.com>",
+    "Jonas Franke <me@byjonas.dev>"
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wingsoffirewiki/fandom.js.git"
+  },
+  "homepage": "https://fandom.js.org",
+  "bugs": {
+    "url": "https://github.com/wingsoffirewiki/fandom.js/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
-    "build": "tsc",
-    "test": "yarn build && node test/test.js"
+    "build": "tsup --format cjs,esm --dts src/index.ts --out-dir dist",
+    "clean": "rimraf dist .turbo",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest",
+    "dev": "tsc -w",
+    "prepare": "pnpm build",
+    "prepublishOnly": "pnpm build",
+    "docs": "typedoc --out docs/api src",
+    "format": "prettier --write ."
   },
   "dependencies": {
-    "jest": "^27.5.1",
-    "node-fetch": "2.6.7"
+    "cross-fetch": "^4.1.0",
+    "eventemitter3": "^5.0.1",
+    "lru-cache": "^11.2.2"
   },
   "devDependencies": {
-    "typescript": "^4.6.3"
+    "eslint": "^9.39.1",
+    "prettier": "^3.6.2",
+    "tsup": "^8.5.0",
+    "typedoc": "^0.28.14",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
   }
 }
