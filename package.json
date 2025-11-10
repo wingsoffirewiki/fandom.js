@@ -2,13 +2,9 @@
   "name": "fandom.js",
   "version": "0.1.0",
   "description": "A powerful library to interact with the Fandom + MediaWiki APIs",
-  "exports": {
-    ".": {
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
   "files": [
     "dist",
     "README.md",
@@ -38,14 +34,15 @@
     "fandomjs"
   ],
   "scripts": {
-    "build": "tsup --format cjs,esm --dts src/index.ts --out-dir dist",
-    "clean": "rimraf dist .turbo",
-    "lint": "eslint . --ext .ts",
-    "test": "vitest",
+    "build": "tsc",
+    "test": "pnpm run test:types && vitest run",
+    "test:watch": "vitest --watch",
+    "test:coverage": "pnpm run test:types && vitest run --coverage",
+    "test:ci": "pnpm run test:types && vitest run --coverage --reporter=dot",
+    "test:types": "tsc -p tsconfig.json --noEmit",
     "dev": "tsc -w",
     "prepare": "pnpm build",
     "prepublishOnly": "pnpm build",
-    "docs": "typedoc --out docs/api src",
     "format": "prettier --write ."
   },
   "dependencies": {
@@ -54,10 +51,10 @@
     "lru-cache": "^11.2.2"
   },
   "devDependencies": {
-    "eslint": "^9.39.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@types/node": "^24.10.0",
+    "@vitest/coverage-v8": "4.0.8",
     "prettier": "^3.6.2",
-    "tsup": "^8.5.0",
-    "typedoc": "^0.28.14",
     "typescript": "^5.9.3",
     "vitest": "^4.0.8"
   }

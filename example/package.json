@@ -1,0 +1,10 @@
+{
+  "name": "@fandomjs/example",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "fandom.js": "workspace:*"
+  }
+}
