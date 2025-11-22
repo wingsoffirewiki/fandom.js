@@ -45,6 +45,7 @@ describe("RequestManager", () => {
   it("builds a GET request with query params and arrays", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
+      headers: new Headers(),
       json: () => Promise.resolve({ success: true }),
     });
 
@@ -71,6 +72,7 @@ describe("RequestManager", () => {
   it("allows overriding the API path per request", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
+      headers: { get: () => null },
       json: () => Promise.resolve({}),
     });
 
@@ -85,6 +87,7 @@ describe("RequestManager", () => {
   it("sets the User-Agent header when provided", async () => {
     fetchMock.mockResolvedValue({
       ok: true,
+      headers: { get: () => null },
       json: () => Promise.resolve({}),
     });
 
@@ -104,10 +107,21 @@ describe("RequestManager", () => {
     vi.useFakeTimers();
 
     fetchMock
-      .mockResolvedValueOnce({ ok: false, status: 500, statusText: "error" })
-      .mockResolvedValueOnce({ ok: false, status: 500, statusText: "error" })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: "error",
+        headers: { get: () => null },
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: "error",
+        headers: { get: () => null },
+      })
       .mockResolvedValue({
         ok: true,
+        headers: { get: () => null },
         json: () => Promise.resolve({ done: true }),
       });
 
@@ -130,8 +144,18 @@ describe("RequestManager", () => {
     vi.useFakeTimers();
 
     fetchMock
-      .mockResolvedValueOnce({ ok: false, status: 500, statusText: "error" })
-      .mockResolvedValueOnce({ ok: false, status: 500, statusText: "error" });
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: "error",
+        headers: { get: () => null },
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: "error",
+        headers: { get: () => null },
+      });
 
     const manager = new RequestManager({
       baseURL: "https://example.com",

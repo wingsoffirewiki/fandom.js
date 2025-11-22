@@ -5,15 +5,29 @@ import {
   USER_AGENT,
 } from "../src/package-constants";
 
-const { requestManagerGetMock, requestManagerInitMock } = vi.hoisted(() => {
+const {
+  requestManagerGetMock,
+  requestManagerInitMock,
+  requestManagerPostMock,
+  requestManagerFetchTokenMock,
+} = vi.hoisted(() => {
   const getMock = vi.fn();
   const initMock = vi.fn();
-  return { requestManagerGetMock: getMock, requestManagerInitMock: initMock };
+  const postMock = vi.fn();
+  const fetchTokenMock = vi.fn();
+  return {
+    requestManagerGetMock: getMock,
+    requestManagerInitMock: initMock,
+    requestManagerPostMock: postMock,
+    requestManagerFetchTokenMock: fetchTokenMock,
+  };
 });
 
 vi.mock("../src/request/request-manager", () => {
   class FakeRequestManager {
     public get = requestManagerGetMock;
+    public post = requestManagerPostMock;
+    public fetchToken = requestManagerFetchTokenMock;
 
     constructor(options: unknown) {
       requestManagerInitMock(options);
@@ -24,7 +38,8 @@ vi.mock("../src/request/request-manager", () => {
 });
 
 import { Client } from "../src/client/client";
-import { Page } from "../src/structures/page";
+import { Page } from "../src/structures/page-structure";
+import { TokenType } from "../src/enums/index";
 
 describe("Client", () => {
   const host = "https://test.fandom.com";
@@ -32,6 +47,8 @@ describe("Client", () => {
   beforeEach(() => {
     requestManagerInitMock.mockClear();
     requestManagerGetMock.mockReset();
+    requestManagerPostMock.mockReset();
+    requestManagerFetchTokenMock.mockReset();
   });
 
   it("constructs RequestManager with expected defaults", () => {
@@ -55,6 +72,11 @@ describe("Client", () => {
             ns: 0,
             title: "Test Page",
             extract: "Summary text",
+            revisions: [
+              {
+                "*": "Page content",
+              },
+            ],
           },
         },
       },
@@ -65,19 +87,22 @@ describe("Client", () => {
     const eventSpy = vi.fn();
     client.events.on("pageFetched", eventSpy);
 
-    const first = await client.fetchPage("Test Page");
+    const first = await client.pages.fetch("Test Page");
     expect(requestManagerGetMock).toHaveBeenCalledTimes(1);
     expect(requestManagerGetMock).toHaveBeenCalledWith({
       action: "query",
-      prop: "extracts",
+      prop: "extracts|revisions|categories",
       exintro: true,
       explaintext: true,
+      rvprop: "content",
+      cllimit: "max",
       redirects: true,
       titles: "Test Page",
       format: "json",
     });
     expect(first).toBeInstanceOf(Page);
     expect(first.title).toBe("Test Page");
+    expect(first.content).toBe("Page content");
 
     expect(eventSpy).toHaveBeenCalledTimes(1);
     expect(eventSpy).toHaveBeenCalledWith({
@@ -85,9 +110,15 @@ describe("Client", () => {
       ns: 0,
       title: "Test Page",
       extract: "Summary text",
+      revisions: [
+        {
+          "*": "Page content",
+        },
+      ],
+      categories: undefined,
     });
 
-    const second = await client.fetchPage("Test Page");
+    const second = await client.pages.fetch("Test Page");
     expect(requestManagerGetMock).toHaveBeenCalledTimes(1);
     expect(second).toBe(first);
     expect(eventSpy).toHaveBeenCalledTimes(1);
@@ -117,13 +148,15 @@ describe("Client", () => {
       });
 
     const client = new Client({ host });
-    const page = await client.fetchPage("Test Page");
+    const page = await client.pages.fetch("Test Page");
 
     expect(requestManagerGetMock).toHaveBeenNthCalledWith(1, {
       action: "query",
-      prop: "extracts",
+      prop: "extracts|revisions|categories",
       exintro: true,
       explaintext: true,
+      rvprop: "content",
+      cllimit: "max",
       redirects: true,
       titles: "Test Page",
       format: "json",
@@ -143,7 +176,7 @@ describe("Client", () => {
     requestManagerGetMock.mockResolvedValue({ query: { pages: {} } });
     const client = new Client({ host });
 
-    await expect(client.fetchPage("Unknown")).rejects.toThrowError(
+    await expect(client.pages.fetch("Unknown")).rejects.toThrowError(
       "No page data",
     );
   });
@@ -156,5 +189,54 @@ describe("Client", () => {
     client.onReady();
 
     expect(readySpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not start polling if polling option is false", () => {
+    const client = new Client({ host, polling: false });
+    const startPollingSpy = vi.spyOn(client.events, "startPolling");
+
+    client.onReady();
+
+    expect(startPollingSpy).not.toHaveBeenCalled();
+  });
+
+  it("starts polling by default", () => {
+    const client = new Client({ host });
+    const startPollingSpy = vi.spyOn(client.events, "startPolling");
+    // Mock startPolling implementation to avoid actual interval
+    startPollingSpy.mockImplementation(() => {});
+
+    client.onReady();
+
+    expect(startPollingSpy).toHaveBeenCalled();
+  });
+
+  it("logs in successfully", async () => {
+    requestManagerFetchTokenMock.mockResolvedValue("login-token");
+    requestManagerPostMock.mockResolvedValue({ login: { result: "Success" } });
+
+    const client = new Client({ host });
+    await client.login("user", "pass");
+
+    expect(requestManagerFetchTokenMock).toHaveBeenCalledWith(TokenType.Login);
+    expect(requestManagerPostMock).toHaveBeenCalledWith({
+      action: "login",
+      lgname: "user",
+      lgpassword: "pass",
+      lgtoken: "login-token",
+      format: "json",
+    });
+  });
+
+  it("throws on login failure", async () => {
+    requestManagerFetchTokenMock.mockResolvedValue("login-token");
+    requestManagerPostMock.mockResolvedValue({
+      login: { result: "Failed", reason: "BadPass" },
+    });
+
+    const client = new Client({ host });
+    await expect(client.login("user", "pass")).rejects.toThrow(
+      "Login failed: BadPass",
+    );
   });
 });
