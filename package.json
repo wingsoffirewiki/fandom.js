@@ -7,8 +7,7 @@
   "type": "module",
   "files": [
     "dist",
-    "README.md",
-    "LICENSE"
+    "README.md"
   ],
   "authors": [
     "Ferotiq <evanrayweigel@outlook.com>",
