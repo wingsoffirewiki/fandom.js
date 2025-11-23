@@ -87,7 +87,8 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/wingso
 2. Clone your fork.
 3. Create a new branch.
 4. Make your changes.
-5. Run tests `pnpm test`.
-6. Commit your changes.
-7. Push to your fork.
-8. Open a Pull Request.
+5. Update the `CHANGELOG.md` file with details of your changes.
+6. Run tests `pnpm test`.
+7. Commit your changes.
+8. Push to your fork.
+9. Open a Pull Request.
