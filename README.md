@@ -1,3 +1,6 @@
+> [!WARNING]
+> **This project has moved** to the [@fandomjs](https://github.com/fandomjs) organization at [fandomjs/fandom.js](https://github.com/fandomjs/fandom.js)
+
 # fandom.js
 
 A powerful library to interact with the Fandom + MediaWiki APIs.
